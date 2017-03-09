@@ -3,7 +3,7 @@ var friendsRight = document.querySelector('#friends-right');
 var loadFriends = document.querySelector('#loadFriends');
 var globalContainer = document.querySelector('#globalContainer');
 var closeGlobalContainer = document.querySelector('#closeGlobalContainer');
-var saveButtom = document.querySelector('#save');
+var saveButton = document.querySelector('#save');
 var friendsFilterLeft = document.querySelector('#friendsFilterLeft');
 var friendsFilterRight = document.querySelector('#friendsFilterRight');
 var friendsList = { left: [], right: [] };
@@ -19,7 +19,7 @@ friendsRight.addEventListener('drop', handleDrop);
 friendsRight.addEventListener('dragend', handleDragEnd);
 friendsFilterLeft.addEventListener('keyup', friendsFilterHandler);
 friendsFilterRight.addEventListener('keyup', friendsFilterHandler);
-saveButtom.addEventListener('click', handleSaveToLocalStorage);
+saveButton.addEventListener('click', handleSaveToLocalStorage);
 
 closeGlobalContainer.addEventListener('click', () => {
     globalContainer.style.display = "none";
