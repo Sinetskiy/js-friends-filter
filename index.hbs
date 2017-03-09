@@ -28,28 +28,25 @@
 </head>
 
 <body>
-    <div class="global_container_">
+    <button id="loadFriends">Загрузить друзей</button>
+    <div id="globalContainer" class="global_container" style="display: none;">
         <img class="group-2" src="images/group_2.png" alt="" width="102" height="24">
         <div class="background-holder">
             <div class="group-1">
                 <div class="header">
                     <div class="rectangle-1-holder group">
-                        <a href="#"><img class="rounded-rectangle-5" src="images/rounded_rectangle_5_9.png" alt="" width="14" height="14"></a>
+                        <a href="#" id="closeGlobalContainer" ><img class="rounded-rectangle-5" src="images/rounded_rectangle_5_9.png" alt="" width="14" height="14"></a>
                         <p class="text">Выберите друзей</p>
                     </div>
                     <div class="row group">
                         <div class="rounded-rectangle-2-holder group">
-                            <form>
                                 <img class="text-2" src="images/image.png" alt="" width="13" height="15" title="">
-                                <input class="text-3" type="text" placeholder="Начните вводить имя друга" size="33">
-                            </form>
+                                <input id="friendsFilterLeft" class="text-3" type="text" placeholder="Начните вводить имя друга" size="33">
                         </div>
-                        <form>
-                            <div class="rounded-rectangle-2-holder-2">
-                                <img class="text-2" src="images/image.png" alt="" width="13" height="15" title="">
-                                <input class="text-3" type="text" placeholder="Название" size="27">
-                            </div>
-                        </form>
+                        <div class="rounded-rectangle-2-holder-2">
+                            <img class="text-2" src="images/image.png" alt="" width="13" height="15" title="">
+                            <input id="friendsFilterRight" class="text-3" type="text" placeholder="Начните вводить имя друга" size="27">
+                        </div>
                     </div>
                 </div>
                 <div class="wrapper-4">
