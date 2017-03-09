@@ -505,6 +505,23 @@ body {
     font-weight: 300;
     text-align: center;
     border: 0;
+    cursor: pointer;
+}
+
+.open-button {
+    margin: 25% 25% 25% 50%;
+    min-height: 13px;
+    padding: 6px 0 7px;
+    width: 150px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    background: #ff8663;
+    color: #ffffff;
+    font-size: 18px;
+    text-align: center;
+    border: 0;
+    cursor: pointer;
 }
 
 input::-moz-placeholder {

@@ -1,60 +1,25 @@
-require('./index.css');
-require('./filter.js');
-require('./dragNdrop.js');
-
 var friendsLeft = document.querySelector('#friends-left');
 var friendsRight = document.querySelector('#friends-right');
 var loadFriends = document.querySelector('#loadFriends');
 var globalContainer = document.querySelector('#globalContainer');
 var closeGlobalContainer = document.querySelector('#closeGlobalContainer');
 var saveButtom = document.querySelector('#save');
+var friendsFilterLeft = document.querySelector('#friendsFilterLeft');
+var friendsFilterRight = document.querySelector('#friendsFilterRight');
 var friendsList = { left: [], right: [] };
+var dragElementId = null;
 
-
+friendsLeft.addEventListener('dragstart', handleDragStart);
+friendsLeft.addEventListener('dragover', handleDragOver);
+friendsLeft.addEventListener('drop', handleDrop);
+friendsLeft.addEventListener('dragend', handleDragEnd);
+friendsRight.addEventListener('dragstart', handleDragStart);
+friendsRight.addEventListener('dragover', handleDragOver);
+friendsRight.addEventListener('drop', handleDrop);
+friendsRight.addEventListener('dragend', handleDragEnd);
+friendsFilterLeft.addEventListener('keyup', friendsFilterHandler);
+friendsFilterRight.addEventListener('keyup', friendsFilterHandler);
 saveButtom.addEventListener('click', handleSaveToLocalStorage);
-
-function login() {
-    return new Promise((resolve, reject) => {
-        VK.init({
-            apiId: 5908777
-        });
-        VK.Auth.login(function(result) {
-            if (result.status == 'connected') {
-                resolve();
-            } else {
-                reject();
-            }
-        });
-    });
-}
-
-function callAPI(method, params) {
-    return new Promise((resolve, reject) => {
-        VK.api(method, params, function(result) {
-            if (result.error) {
-                reject();
-            } else {
-                resolve(result.response);
-            }
-        });
-    });
-}
-
-function createFriendsDivLeft(friends) {
-    var templateFn = require('../friend-template.hbs');
-
-    return templateFn({
-        friends: friends
-    });
-}
-
-function createFriendsDivRight(friends) {
-    var templateFn = require('../friend-template.right.hbs');
-
-    return templateFn({
-        friends: friends
-    });
-}
 
 closeGlobalContainer.addEventListener('click', () => {
     globalContainer.style.display = "none";
@@ -62,6 +27,7 @@ closeGlobalContainer.addEventListener('click', () => {
 });
 
 loadFriends.addEventListener('click', () => {
+
     if (friendsList.left.length > 0 || friendsList.right.length > 0) {
         loadFriends.style.display = "none";
         globalContainer.style.display = "block";
@@ -124,3 +90,155 @@ friendsRight.addEventListener('click', (e) => {
     friendsRight.innerHTML = createFriendsDivRight(friendsList.right);
     friendsLeft.innerHTML = createFriendsDivLeft(friendsList.left);
 });
+
+function friendsFilterHandler(e) {
+    let value = this.value.trim();
+
+    if (value == '') {
+        friendsLeft.innerHTML = createFriendsDivLeft(friendsList.left);
+        friendsRight.innerHTML = createFriendsDivRight(friendsList.right);
+        return;
+    }
+
+    let handler = function(f) {
+        return isMatching(f.first_name, value) ||
+            isMatching(f.last_name, value) ||
+            isMatching(`${f.first_name} ${f.last_name}`, value);
+    }
+
+    if (e.target.id == 'friendsFilterLeft') {
+        friendsLeft.innerHTML = createFriendsDivLeft(friendsList.left.filter(handler));
+    }
+
+    if (e.target.id == 'friendsFilterRight') {
+        friendsRight.innerHTML = createFriendsDivRight(friendsList.right.filter(handler));
+    }
+}
+
+function handleDragStart(e) {
+    if (isAttributeExist(e.target, 'draggable')) {
+        e.target.style.opacity = '0.4';
+        dragElementId = e.target.dataset.id;
+    }
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+
+    return false;
+}
+
+function handleDrop(e) {
+
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+
+    var elementPositionLeft = GetPosition(friendsList.left, dragElementId);
+    var elementPositionRight = GetPosition(friendsList.right, dragElementId);
+
+    if (elementPositionLeft > -1) {
+        friendsList.right.push(friendsList.left[elementPositionLeft]);
+        friendsList.left.splice(elementPositionLeft, 1);
+    }
+
+    if (elementPositionRight > -1) {
+        friendsList.left.push(friendsList.right[elementPositionRight]);
+        friendsList.right.splice(elementPositionRight, 1);
+    }
+
+    friendsRight.innerHTML = createFriendsDivRight(friendsList.right);
+    friendsLeft.innerHTML = createFriendsDivLeft(friendsList.left);
+
+    return false;
+}
+
+function handleDragEnd(e) {
+    if (e.target.attributes.length > 1 && e.target.attributes[1].name == 'draggable') {
+        e.target.style.opacity = '1';
+    }
+}
+
+function handleSaveToLocalStorage(e) {
+    localStorage.left = JSON.stringify(friendsList.left);
+    localStorage.right = JSON.stringify(friendsList.right);
+}
+
+
+function login() {
+    return new Promise((resolve, reject) => {
+        VK.init({
+            apiId: 5908777
+        });
+        VK.Auth.login(function(result) {
+            if (result.status == 'connected') {
+                resolve();
+            } else {
+                reject();
+            }
+        });
+    });
+}
+
+function callAPI(method, params) {
+    return new Promise((resolve, reject) => {
+        VK.api(method, params, function(result) {
+            if (result.error) {
+                reject();
+            } else {
+                resolve(result.response);
+            }
+        });
+    });
+}
+
+function createFriendsDivLeft(friends) {
+    var templateFn = require('../friend-template.left.hbs');
+
+    return templateFn({
+        friends: friends
+    });
+}
+
+function createFriendsDivRight(friends) {
+    var templateFn = require('../friend-template.right.hbs');
+
+    return templateFn({
+        friends: friends
+    });
+}
+
+function isMatching(full, chunk) {
+
+    if (typeof full != 'string') {
+        throw new Error('"full" is not a string type');
+    }
+
+    if (typeof chunk != 'string') {
+        throw new Error('"chunk" is not a string type');
+    }
+
+    return full.toUpperCase().includes(chunk.toUpperCase());
+}
+
+
+function isAttributeExist(node, attributeName) {
+    for (let attribute of node.attributes) {
+        if (attributeName == attribute.name) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function GetPosition(frinendsArray, elementId) {
+    for (let i = 0; i < frinendsArray.length; i++) {
+        if (elementId == frinendsArray[i].id) {
+            return i;
+        }
+    }
+    return -1;
+}
