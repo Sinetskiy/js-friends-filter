@@ -8,6 +8,7 @@ var friendsFilterLeft = document.querySelector('#friendsFilterLeft');
 var friendsFilterRight = document.querySelector('#friendsFilterRight');
 var friendsList = { left: [], right: [] };
 var dragElementId = null;
+var filterValue = '';
 
 friendsLeft.addEventListener('dragstart', handleDragStart);
 friendsLeft.addEventListener('dragover', handleDragOver);
@@ -39,8 +40,8 @@ loadFriends.addEventListener('click', () => {
         globalContainer.style.display = "block";
         friendsList.left = JSON.parse(localStorage.left);
         friendsList.right = JSON.parse(localStorage.right);
-        friendsLeft.innerHTML = createFriendsDivLeft(friendsList.left);
-        friendsRight.innerHTML = createFriendsDivRight(friendsList.right);
+        friendsLeft.innerHTML = createFriendsDiv(friendsList.left, friendsLeft.id);
+        friendsRight.innerHTML = createFriendsDiv(friendsList.right, friendsRight.id);
         return;
     }
 
@@ -48,7 +49,7 @@ loadFriends.addEventListener('click', () => {
         .then(() => callAPI('friends.get', { v: 5.62, fields: ['city', 'country', 'photo_100'] }))
         .then(result => {
             friendsList.left = result.items;
-            friendsLeft.innerHTML = createFriendsDivLeft(result.items);
+            friendsLeft.innerHTML = createFriendsDiv(result.items, friendsLeft.id);
         })
         .then(() => {
             loadFriends.style.display = "none";
@@ -70,8 +71,8 @@ friendsLeft.addEventListener('click', (e) => {
         }
     }
 
-    friendsRight.innerHTML = createFriendsDivRight(friendsList.right);
-    friendsLeft.innerHTML = createFriendsDivLeft(friendsList.left);
+    SetColumnData(friendsLeft, friendsList.left, friendsFilterLeft);
+    SetColumnData(friendsRight, friendsList.right, friendsFilterRight);
 });
 
 friendsRight.addEventListener('click', (e) => {
@@ -87,31 +88,20 @@ friendsRight.addEventListener('click', (e) => {
         }
     }
 
-    friendsRight.innerHTML = createFriendsDivRight(friendsList.right);
-    friendsLeft.innerHTML = createFriendsDivLeft(friendsList.left);
+    SetColumnData(friendsLeft, friendsList.left, friendsFilterLeft);
+    SetColumnData(friendsRight, friendsList.right, friendsFilterRight);
+
 });
 
 function friendsFilterHandler(e) {
-    let value = this.value.trim();
-
-    if (value == '') {
-        friendsLeft.innerHTML = createFriendsDivLeft(friendsList.left);
-        friendsRight.innerHTML = createFriendsDivRight(friendsList.right);
-        return;
-    }
-
-    let handler = function(f) {
-        return isMatching(f.first_name, value) ||
-            isMatching(f.last_name, value) ||
-            isMatching(`${f.first_name} ${f.last_name}`, value);
-    }
+    filterValue = this.value.trim();
 
     if (e.target.id == 'friendsFilterLeft') {
-        friendsLeft.innerHTML = createFriendsDivLeft(friendsList.left.filter(handler));
+        SetColumnData(friendsLeft, friendsList.left, friendsFilterLeft);
     }
 
     if (e.target.id == 'friendsFilterRight') {
-        friendsRight.innerHTML = createFriendsDivRight(friendsList.right.filter(handler));
+        SetColumnData(friendsRight, friendsList.right, friendsFilterRight);
     }
 }
 
@@ -149,8 +139,8 @@ function handleDrop(e) {
         friendsList.right.splice(elementPositionRight, 1);
     }
 
-    friendsRight.innerHTML = createFriendsDivRight(friendsList.right);
-    friendsLeft.innerHTML = createFriendsDivLeft(friendsList.left);
+    SetColumnData(friendsLeft, friendsList.left, friendsFilterLeft);
+    SetColumnData(friendsRight, friendsList.right, friendsFilterRight);
 
     return false;
 }
@@ -194,16 +184,16 @@ function callAPI(method, params) {
     });
 }
 
-function createFriendsDivLeft(friends) {
-    var templateFn = require('../friend-template.left.hbs');
+function createFriendsDiv(friends, columnId) {
+    let templateFn;
 
-    return templateFn({
-        friends: friends
-    });
-}
+    if (columnId == "friends-left") {
+        templateFn = require('../friend-template.left.hbs');
+    }
 
-function createFriendsDivRight(friends) {
-    var templateFn = require('../friend-template.right.hbs');
+    if (columnId == "friends-right") {
+        templateFn = require('../friend-template.right.hbs');
+    }
 
     return templateFn({
         friends: friends
@@ -221,6 +211,12 @@ function isMatching(full, chunk) {
     }
 
     return full.toUpperCase().includes(chunk.toUpperCase());
+}
+
+function friendsMatch(f) {
+    return isMatching(f.first_name, filterValue) ||
+        isMatching(f.last_name, filterValue) ||
+        isMatching(`${f.first_name} ${f.last_name}`, filterValue);
 }
 
 
@@ -241,4 +237,14 @@ function GetPosition(frinendsArray, elementId) {
         }
     }
     return -1;
+}
+
+function SetColumnData(friendsColumn, columnData, filterFild) {
+    filterValue = '';
+    filterValue = filterFild.value.trim();
+    if (filterValue != '') {
+        friendsColumn.innerHTML = createFriendsDiv(columnData.filter(friendsMatch), friendsColumn.id);
+    } else {
+        friendsColumn.innerHTML = createFriendsDiv(columnData, friendsColumn.id);
+    }
 }
